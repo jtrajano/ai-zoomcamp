@@ -5,14 +5,7 @@ from .models import Task
 
 
 def index(request):
-	"""List tasks and handle creation of new tasks via POST."""
-	if request.method == 'POST':
-		title = request.POST.get('title', '').strip()
-		description = request.POST.get('description', '').strip()
-		if title:
-			Task.objects.create(title=title, description=description)
-		return redirect('todo:index')
-
+	"""List tasks only."""
 	tasks = Task.objects.all()
 	return render(request, 'todo/index.html', {'tasks': tasks})
 
@@ -30,3 +23,30 @@ def delete_task(request, pk):
 	task = get_object_or_404(Task, pk=pk)
 	task.delete()
 	return redirect('todo:index')
+
+
+def add_task(request):
+	"""Show add form (GET) and create a new task (POST)."""
+	if request.method == 'POST':
+		title = request.POST.get('title', '').strip()
+		description = request.POST.get('description', '').strip()
+		if title:
+			Task.objects.create(title=title, description=description)
+			return redirect('todo:index')
+		# If no title, re-render form (could add error handling)
+	return render(request, 'todo/add.html')
+
+
+def edit_task(request, pk):
+	"""Show edit form (GET) and update task (POST)."""
+	task = get_object_or_404(Task, pk=pk)
+	if request.method == 'POST':
+		title = request.POST.get('title', '').strip()
+		description = request.POST.get('description', '').strip()
+		if title:
+			task.title = title
+			task.description = description
+			task.save()
+			return redirect('todo:index')
+		# If title empty, re-render form
+	return render(request, 'todo/edit.html', {'task': task})

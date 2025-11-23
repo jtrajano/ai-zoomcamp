@@ -1,0 +1,9 @@
+<div>
+  <label for="title">Title</label><br>
+  <input id="title" name="title" required maxlength="200" style="width:100%" value="{{ title|default_if_none:'' }}">
+</div>
+<div style="margin-top:.5rem">
+  <label for="description">Description</label><br>
+  <textarea id="description" name="description" rows="3" style="width:100%">{{ description|default_if_none:'' }}</textarea>
+</div>
+

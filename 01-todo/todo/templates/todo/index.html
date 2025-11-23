@@ -16,20 +16,7 @@
   <body>
     <h1>Todo</h1>
 
-    <form method="post">
-      {% csrf_token %}
-      <div>
-        <label for="title">Title</label><br>
-        <input id="title" name="title" required maxlength="200" style="width:100%">
-      </div>
-      <div style="margin-top:.5rem">
-        <label for="description">Description</label><br>
-        <textarea id="description" name="description" rows="3" style="width:100%"></textarea>
-      </div>
-      <div style="margin-top:.5rem">
-        <button type="submit">Add</button>
-      </div>
-    </form>
+    <p><a href="{% url 'todo:add' %}">Add a new task</a></p>
 
     <div>
       {% if tasks %}
@@ -44,6 +31,7 @@
             <div class="meta">Created: {{ task.created_at }}</div>
             <div class="actions">
               <a href="{% url 'todo:toggle' task.pk %}">{% if task.completed %}Mark incomplete{% else %}Mark complete{% endif %}</a>
+              <a href="{% url 'todo:edit' task.pk %}">Edit</a>
               <a href="{% url 'todo:delete' task.pk %}" onclick="return confirm('Delete this task?')">Delete</a>
             </div>
           </div>

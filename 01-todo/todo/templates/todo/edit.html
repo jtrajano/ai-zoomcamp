@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Task | Todo App{% endblock %}
+
+{% block content %}
+  <h2>Edit Task</h2>
+  <form method="post">
+    {% csrf_token %}
+    {% include "todo/_form.html" with title=task.title description=task.description %}
+    <div style="margin-top:.5rem">
+      <button type="submit">Save</button>
+      <a href="{% url 'todo:index' %}">Cancel</a>
+    </div>
+  </form>
+{% endblock %}
