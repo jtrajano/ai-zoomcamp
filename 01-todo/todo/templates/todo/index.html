@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Todo</title>
+    <style>
+      body { font-family: Arial, sans-serif; max-width: 800px; margin: 2rem auto; }
+      .completed { text-decoration: line-through; color: #666; }
+      form { margin-bottom: 1.5rem; }
+      .task { padding: .5rem 0; border-bottom: 1px solid #eee; }
+      .meta { color: #999; font-size: .9rem; }
+      .actions a { margin-right: .5rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Todo</h1>
+
+    <form method="post">
+      {% csrf_token %}
+      <div>
+        <label for="title">Title</label><br>
+        <input id="title" name="title" required maxlength="200" style="width:100%">
+      </div>
+      <div style="margin-top:.5rem">
+        <label for="description">Description</label><br>
+        <textarea id="description" name="description" rows="3" style="width:100%"></textarea>
+      </div>
+      <div style="margin-top:.5rem">
+        <button type="submit">Add</button>
+      </div>
+    </form>
+
+    <div>
+      {% if tasks %}
+        {% for task in tasks %}
+          <div class="task">
+            <div>
+              <strong class="{% if task.completed %}completed{% endif %}">{{ task.title }}</strong>
+            </div>
+            {% if task.description %}
+              <div>{{ task.description }}</div>
+            {% endif %}
+            <div class="meta">Created: {{ task.created_at }}</div>
+            <div class="actions">
+              <a href="{% url 'todo:toggle' task.pk %}">{% if task.completed %}Mark incomplete{% else %}Mark complete{% endif %}</a>
+              <a href="{% url 'todo:delete' task.pk %}" onclick="return confirm('Delete this task?')">Delete</a>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p>No tasks yet.</p>
+      {% endif %}
+    </div>
+  </body>
+</html>
