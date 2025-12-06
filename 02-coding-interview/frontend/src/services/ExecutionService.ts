@@ -5,7 +5,7 @@ export interface ExecutionResult {
 
 export class ExecutionService {
     private pyodideWorker: Worker | null = null;
-    private pyodideLogs: string[] = [];
+    // private pyodideLogs: string[] = []; // Removed unused property
 
     constructor() {
         // We instantiate the worker only when needed to save resources,
@@ -22,13 +22,14 @@ export class ExecutionService {
             logs.push(args.map(a => String(a)).join(' '));
         };
         
-        try {
-            const run = new Function('${code.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}');
-            run();
-            postMessage({ success: true, logs });
-        } catch (e) {
-            postMessage({ success: false, error: e.toString(), logs });
-        }
+            const codeToRun = ${JSON.stringify(code)};
+            try {
+                const run = new Function(codeToRun);
+                run();
+                postMessage({ success: true, logs });
+            } catch (e) {
+                postMessage({ success: false, error: e.toString(), logs });
+            }
       `;
 
             const blob = new Blob([workerCode], { type: 'application/javascript' });
@@ -64,7 +65,7 @@ export class ExecutionService {
 
         return new Promise((resolve) => {
             const logs: string[] = [];
-            this.pyodideLogs = []; // internal reset
+            // Logs are accumulated locally in this scope
 
             const handleMessage = (e: MessageEvent) => {
                 const { type, content } = e.data;

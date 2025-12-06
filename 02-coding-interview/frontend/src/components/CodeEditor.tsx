@@ -31,7 +31,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, language, onCode
         };
     }, [roomId]);
 
-    const handleEditorDidMount: OnMount = (editor, monaco) => {
+    const handleEditorDidMount: OnMount = (editor, _monaco) => {
         setEditorRef(editor);
         const type = docRef.current.getText('monaco');
 
