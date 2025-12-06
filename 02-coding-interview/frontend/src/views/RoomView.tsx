@@ -56,7 +56,7 @@ export const RoomView: React.FC = () => {
                         className="select-input"
                     >
                         <option value="javascript">JavaScript</option>
-                        <option value="python">Python (Mock)</option>
+                        <option value="python">Python</option>
                     </select>
 
                     <button

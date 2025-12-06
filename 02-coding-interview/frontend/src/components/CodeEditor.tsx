@@ -51,6 +51,10 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ roomId, language, onCode
 
     useEffect(() => {
         if (!editorRef) return;
+
+        // Sync initial value (in case Yjs populated it before listener attached)
+        onCodeChange?.(editorRef.getValue());
+
         const disposable = editorRef.onDidChangeModelContent(() => {
             onCodeChange?.(editorRef.getValue());
         });
