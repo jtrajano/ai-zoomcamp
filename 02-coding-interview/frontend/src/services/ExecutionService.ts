@@ -5,9 +5,11 @@ export interface ExecutionResult {
 
 export class ExecutionService {
     private pyodideWorker: Worker | null = null;
+    private pyodideLogs: string[] = [];
 
     constructor() {
-        // Initialize workers if needed
+        // We instantiate the worker only when needed to save resources,
+        // or we could do it on startup. For now, lazy load in runPython.
     }
 
     async runJavaScript(code: string): Promise<ExecutionResult> {
@@ -18,11 +20,9 @@ export class ExecutionService {
         const originalConsoleLog = console.log;
         console.log = (...args) => {
             logs.push(args.map(a => String(a)).join(' '));
-            // originalConsoleLog(...args); // Optional: if we want to see it in browser devtools
         };
         
         try {
-            // Basic safety wrapping
             const run = new Function('${code.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}');
             run();
             postMessage({ success: true, logs });
@@ -50,7 +50,6 @@ export class ExecutionService {
                 worker.terminate();
             };
 
-            // Timeout execution after 5 seconds
             setTimeout(() => {
                 worker.terminate();
                 resolve({ logs, error: 'Execution timed out.' });
@@ -59,15 +58,43 @@ export class ExecutionService {
     }
 
     async runPython(code: string): Promise<ExecutionResult> {
-        // For a real implementation, we would load Pyodide here.
-        // Since Pyodide is heavy, we'll mock it for the MVP or use a CDN loader if requested.
-        // Given the constraints and "safe execution", a real isolated environment is best.
+        if (!this.pyodideWorker) {
+            this.pyodideWorker = new Worker('/pyodide-worker.js');
+        }
 
-        // Placeholder implementation for Python:
-        return {
-            logs: [],
-            error: "Python execution requires loading Pyodide (heavy). Implemented as placeholder."
-        };
+        return new Promise((resolve) => {
+            const logs: string[] = [];
+            this.pyodideLogs = []; // internal reset
+
+            const handleMessage = (e: MessageEvent) => {
+                const { type, content } = e.data;
+                if (type === 'log') {
+                    logs.push(content);
+                } else if (type === 'error') {
+                    // We treat stderr as part of result but maybe separate field? 
+                    // For now, let's append to logs or set error.
+                    // Typically stderr is just error output, not necessarily a crash.
+                    // But our interface has one 'error' string.
+                    // Let's accumulate logs and if 'error' event sends content, we use it.
+                    logs.push("Error: " + content);
+                } else if (type === 'done') {
+                    resolve({ logs });
+                }
+            };
+
+            // One-time listener for valid request-response cycle? 
+            // Since worker is long-lived, we need to manage listeners.
+            // For simplicity, we can use 'onmessage' but that overrides previous. 
+            // If we allow concurrent runs, we need IDs. Assuming sequential for now.
+            this.pyodideWorker!.onmessage = handleMessage;
+
+            this.pyodideWorker!.onerror = (e) => {
+                resolve({ logs, error: "Worker Error: " + e.message });
+                // Assuming we don't terminate long-lived worker on error unless fatal
+            };
+
+            this.pyodideWorker!.postMessage({ code });
+        });
     }
 }
 
