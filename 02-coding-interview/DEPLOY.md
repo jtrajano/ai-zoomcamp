@@ -47,3 +47,15 @@ gcloud run deploy coding-interview --image asia-southeast1-docker.pkg.dev/sublim
 ### Explanation:
 - `--max-instances 1`: Cost Control (Free Tier friendly).
 - `--allow-unauthenticated`: Makes the app public.
+
+
+## 7. Access the App
+Once deployed, you can access your app at the URL provided by the `gcloud run deploy` command.
+https://coding-interview-2b437a3vpa-as.a.run.app/
+
+## 8. Clean Up
+```bash
+gcloud artifacts repositories delete coding-interview-repo --location=asia-southeast1
+gcloud run services delete coding-interview --region asia-southeast1
+gcloud auth revoke
+```
