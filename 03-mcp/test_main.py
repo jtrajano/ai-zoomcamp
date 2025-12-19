@@ -3,6 +3,30 @@ from unittest.mock import patch, Mock
 import main
 
 
+def test_add():
+    """Test the add function"""
+    result = main.add.fn(5, 3)
+    assert result == 8
+    
+    result = main.add.fn(-5, 3)
+    assert result == -2
+    
+    result = main.add.fn(0, 0)
+    assert result == 0
+
+
+def test_add_large_numbers():
+    """Test add with large numbers"""
+    result = main.add.fn(1000000, 2000000)
+    assert result == 3000000
+
+
+def test_add_negative_numbers():
+    """Test add with negative numbers"""
+    result = main.add.fn(-10, -20)
+    assert result == -30
+
+
 def test_scrape_page_success():
     """Test successful page scraping"""
     mock_response = Mock()
@@ -84,3 +108,114 @@ def test_scrape_page_returns_string():
         result = main.scrape_page.fn("https://datatalks.club")
         assert isinstance(result, str)
         assert len(result) > 0
+
+
+def test_minsearch_success():
+    """Test successful minsearch query"""
+    mock_result = {
+        "query": "FastMCP",
+        "total_results": 2,
+        "results": [
+            {
+                "rank": 1,
+                "filename": "README.md",
+                "content_preview": "FastMCP is a framework...",
+                "full_content": "FastMCP is a framework for building MCP servers"
+            },
+            {
+                "rank": 2,
+                "filename": "AGENTS.md",
+                "content_preview": "Agent guidelines...",
+                "full_content": "Agent guidelines for FastMCP"
+            }
+        ]
+    }
+    
+    with patch('search.filesearch', return_value=mock_result):
+        result = main.minsearch.fn("FastMCP")
+        
+        assert isinstance(result, dict)
+        assert result["query"] == "FastMCP"
+        assert result["total_results"] == 2
+        assert len(result["results"]) == 2
+
+
+def test_minsearch_with_top_n():
+    """Test minsearch with custom top_n parameter"""
+    mock_result = {
+        "query": "test",
+        "total_results": 3,
+        "results": [{"rank": i} for i in range(1, 4)]
+    }
+    
+    with patch('search.filesearch', return_value=mock_result) as mock_search:
+        result = main.minsearch.fn("test", top_n=3)
+        
+        # Verify filesearch was called with correct parameters
+        mock_search.assert_called_once_with("test", 3)
+        assert result["total_results"] == 3
+
+
+def test_minsearch_default_top_n():
+    """Test minsearch with default top_n parameter"""
+    mock_result = {
+        "query": "test",
+        "total_results": 1,
+        "results": [{"rank": 1}]
+    }
+    
+    with patch('search.filesearch', return_value=mock_result) as mock_search:
+        result = main.minsearch.fn("test")
+        
+        # Verify filesearch was called with default top_n=5
+        mock_search.assert_called_once_with("test", 5)
+
+
+def test_minsearch_error_handling():
+    """Test minsearch error handling"""
+    with patch('search.filesearch', side_effect=Exception("Search failed")):
+        result = main.minsearch.fn("test query")
+        
+        assert isinstance(result, dict)
+        assert "error" in result
+        assert result["error"] == "Search failed"
+        assert result["query"] == "test query"
+
+
+def test_minsearch_empty_results():
+    """Test minsearch with no results"""
+    mock_result = {
+        "query": "nonexistent",
+        "total_results": 0,
+        "results": []
+    }
+    
+    with patch('search.filesearch', return_value=mock_result):
+        result = main.minsearch.fn("nonexistent")
+        
+        assert result["total_results"] == 0
+        assert len(result["results"]) == 0
+
+
+def test_minsearch_file_not_found_error():
+    """Test minsearch when JSON file is not found"""
+    with patch('search.filesearch', side_effect=FileNotFoundError("JSON file not found")):
+        result = main.minsearch.fn("test")
+        
+        assert "error" in result
+        assert "JSON file not found" in result["error"]
+
+
+def test_minsearch_returns_dict():
+    """Test that minsearch always returns a dict"""
+    mock_result = {"query": "test", "total_results": 0, "results": []}
+    
+    with patch('search.filesearch', return_value=mock_result):
+        result = main.minsearch.fn("test")
+        assert isinstance(result, dict)
+    
+    # Even on error, should return dict
+    with patch('search.filesearch', side_effect=Exception("error")):
+        result = main.minsearch.fn("test")
+        assert isinstance(result, dict)
+
