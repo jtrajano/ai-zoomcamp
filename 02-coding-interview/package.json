@@ -1,0 +1,17 @@
+{
+  "name": "02-coding-interview",
+  "version": "1.0.0",
+  "description": "- `frontend/`: React + Vite + TypeScript application\r - `backend/`: FastAPI + Python application",
+  "main": "index.js",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "concurrently \"cd backend && python -m uvicorn main:app --reload --port 8000\" \"cd frontend && npm run dev\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
