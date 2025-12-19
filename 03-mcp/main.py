@@ -1,3 +1,4 @@
+import search
 from fastmcp import FastMCP
 import httpx
 
@@ -29,6 +30,22 @@ def scrape_page(url: str) -> str:
         return f"Error scraping page: {str(e)}"
     except Exception as e:
         return f"Unexpected error: {str(e)}"
-
+    
+@mcp.tool
+def minsearch(query: str, top_n: int = 5) -> dict:
+    """Search markdown documentation files using minsearch
+    
+    Args:
+        query: The search query string
+        top_n: Number of top results to return (default: 5)
+        
+    Returns:
+        Dictionary with query, total_results, and list of matching documents
+    """
+    try:
+        return search.filesearch(query, top_n)
+    except Exception as e:
+        return {"error": str(e), "query": query}
+    
 if __name__ == "__main__":
     mcp.run()
